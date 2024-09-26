@@ -12,7 +12,6 @@ const register = async (req, res) => {
         return res.status(400).json({ error: "inter u info" });
     }
 
-
     try {
        
         // const existingUser = await User.findOne({ username });
@@ -25,7 +24,6 @@ const register = async (req, res) => {
         //     return res.status(400).json({ error: "Email already exists. Please choose a different one." });
         // }
 
-      
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newuser = await User.create({ username, email, password: hashedPassword });
