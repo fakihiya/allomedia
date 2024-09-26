@@ -27,6 +27,6 @@ const registervalidate = validateinputs.object({
 })
 
 const validateRegister = (data) => {
-    return registervalidate.validate(data, { abortEarly: false }); // return all errors at once
+    return registervalidate.validate(data, { abortEarly: false }); 
 };
 module.exports = { validateRegister };

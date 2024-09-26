@@ -11,7 +11,6 @@ const register = async (req, res) => {
     if (!username || !email || !password) {
         return res.status(400).json({ error: "inter u info" });
     }
-
     try {
        
         // const existingUser = await User.findOne({ username });
