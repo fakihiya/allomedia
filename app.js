@@ -1,7 +1,9 @@
 const express = require("express");
 
 require("dotenv").config();
-require("./config/database");
+
+const connectDB = require('./config/database'); // Import the connection function
+connectDB(process.env.DB_URI);
 
 const apiRoutes = require("./routes/api");
 const webRoutes = require("./routes/web");
