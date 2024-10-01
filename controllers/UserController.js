@@ -210,30 +210,30 @@ const verifyOTP = async (req, res) => {
     }
   };
   
-// const logout = async (req, res) => {
-//   try {
-//     // Clear the token by setting it to an empty value or instructing the client to remove it from local storage/cookies.
+const logout = async (req, res) => {
+  try {
+    // Clear the token by setting it to an empty value or instructing the client to remove it from local storage/cookies.
     
-//     // Optionally, if using sessions, you can also destroy the session on the server side:
-//     if (req.session) {
-//       req.session.destroy(err => {
-//         if (err) {
-//           console.error('Error destroying session during logout:', err);
-//           return res.status(500).json({ message: 'Error during session logout' });
-//         }
-//       });
-//     }
+    // Optionally, if using sessions, you can also destroy the session on the server side:
+    if (req.session) {
+      req.session.destroy(err => {
+        if (err) {
+          console.error('Error destroying session during logout:', err);
+          return res.status(500).json({ message: 'Error during session logout' });
+        }
+      });
+    }
 
-//     // You can also clear the JWT token cookie if it exists
-//     res.clearCookie('token'); // Clear the 'token' cookie (if used)
+    // You can also clear the JWT token cookie if it exists
+    res.clearCookie('token'); // Clear the 'token' cookie (if used)
 
-//     // Send a logout success response
-//     res.status(200).json({ message: 'Logout successful' });
-//   } catch (error) {
-//     console.error('Error during logout:', error);
-//     res.status(500).json({ message: 'Server error during logout' });
-//   }
-// };
+    // Send a logout success response
+    res.status(200).json({ message: 'Logout successful' });
+  } catch (error) {
+    console.error('Error during logout:', error);
+    res.status(500).json({ message: 'Server error during logout' });
+  }
+};
 
 // module.exports = {
 //   logout,
