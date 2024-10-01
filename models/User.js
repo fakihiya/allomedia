@@ -22,16 +22,16 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Password is required'],
     minlength: [8, 'Password must be at least 8 characters long']
   },
-  // isVerified: { type: Boolean, default: false },
-  // otp: String,
-  // otpExpires: Date,
-  // lastLogin: {
-  //   type: Date,
-  //   default: null,
-  // },
-  // resetPasswordToken: { type: String },
+  isVerified: { type: Boolean, default: false },
+  otp: String,
+  otpExpires: Date,
+  lastLogin: {
+    type: Date,
+    default: null,
+  },
+  resetPasswordToken: { type: String },
 
-  // resetPasswordExpires: Date,
+  resetPasswordExpires: Date,
   
 });
 

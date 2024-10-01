@@ -10,7 +10,7 @@ router.post('/users/login', login);
 
 // router.post('/forgot-password', forgotPassword);
 
-// router.post('/reset-password/:token', resetPassword);
+router.post('/reset-password/:token', resetPassword);
 // router.post('/users/logout', logout);
 
 module.exports = router;
