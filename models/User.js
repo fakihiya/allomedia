@@ -22,36 +22,24 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Password is required'],
     minlength: [8, 'Password must be at least 8 characters long']
   },
-//   firstName: {
-//     type: String,
-//     trim: true
-//   },
-//   lastName: {
-//     type: String,
-//     trim: true
-//   },
+  // isVerified: { type: Boolean, default: false },
+  // otp: String,
+  // otpExpires: Date,
+  // lastLogin: {
+  //   type: Date,
+  //   default: null,
+  // },
+  // resetPasswordToken: { type: String },
 
-
-//   role: {
-//     type: String,
-//     enum: ['user', 'admin'],
-//     default: 'user'
-//   },
-//   isActive: {
-//     type: Boolean,
-//     default: true
-//   },
-//   lastLogin: {
-//     type: Date
-//   }
-})
-
-
-
-// Pre-save hook to hash password before saving
-// UserSchema.pre('save', async function(next) {
-//   if (!this.isModified('password')) return next();
+  // resetPasswordExpires: Date,
   
+});
+
+
+
+// UserSchema.pre('save', async function (next) {
+//   if (!this.isModified('password')) return next();
+
 //   try {
 //     const salt = await bcrypt.genSalt(10);
 //     this.password = await bcrypt.hash(this.password, salt);
@@ -62,14 +50,9 @@ const UserSchema = new mongoose.Schema({
 // });
 
 // Method to compare passwords
-// UserSchema.methods.comparePassword = async function(candidatePassword) {
-//   return bcrypt.compare(candidatePassword, this.password);
-// };
-
-// Virtual for user's full name
-// UserSchema.virtual('fullName').get(function() {
-//   return `${this.firstName} ${this.lastName}`;
-// });
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 const User = mongoose.model('User', UserSchema);
 
