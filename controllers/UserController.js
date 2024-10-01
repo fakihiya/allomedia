@@ -96,40 +96,40 @@ const login = async (req, res) => {
     }
 };
 
-// const verifyOTP = async (req, res) => {
-//     const { email, otp } = req.body;
-//     try {
-//         const user = await User.findOne({ email });
+const verifyOTP = async (req, res) => {
+    const { email, otp } = req.body;
+    try {
+        const user = await User.findOne({ email });
 
-//         if (!user) {
-//             return res.status(404).json({ message: 'User not found' });
-//         }
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-//         if (user.otp !== otp || Date.now() > user.otpExpires) {
-//             return res.status(400).json({ message: 'Invalid or expired OTP' });
-//         }
+        if (user.otp !== otp || Date.now() > user.otpExpires) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
 
-//         // Clear OTP and expiration fields
-//         user.otp = undefined;
-//         user.otpExpires = undefined;
+        // Clear OTP and expiration fields
+        user.otp = undefined;
+        user.otpExpires = undefined;
 
-//         // Update lastLogin field
-//         user.lastLogin = Date.now();
-//         await user.save();
+        // Update lastLogin field
+        user.lastLogin = Date.now();
+        await user.save();
 
-//         // Generate JWT for authenticated user
-//         const token = jwt.sign(
-//             { userId: user._id, username: user.username },
-//             process.env.JWT_SECRET,
-//             { expiresIn: '1h' }
-//         );
+        // Generate JWT for authenticated user
+        const token = jwt.sign(
+            { userId: user._id, username: user.username },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
 
-//         res.status(200).json({ message: 'Login successful', token });
-//     } catch (error) {
-//         console.error('Error during OTP verification:', error);
-//         res.status(500).json({ message: 'Server error' });
-//     }
-// };
+        res.status(200).json({ message: 'Login successful', token });
+    } catch (error) {
+        console.error('Error during OTP verification:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
 
 // const forgotPassword = async (req, res) => {
 //     console.log('Forgot password route invoked');
@@ -210,7 +210,6 @@ const login = async (req, res) => {
     }
   };
   
-// // Assuming you store tokens in some blacklist or session store, otherwise, this function will simply send a response.
 // const logout = async (req, res) => {
 //   try {
 //     // Clear the token by setting it to an empty value or instructing the client to remove it from local storage/cookies.
