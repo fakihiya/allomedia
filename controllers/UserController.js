@@ -96,149 +96,149 @@ const login = async (req, res) => {
     }
 };
 
-const verifyOTP = async (req, res) => {
-    const { email, otp } = req.body;
-    try {
-        const user = await User.findOne({ email });
+// const verifyOTP = async (req, res) => {
+//     const { email, otp } = req.body;
+//     try {
+//         const user = await User.findOne({ email });
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
 
-        if (user.otp !== otp || Date.now() > user.otpExpires) {
-            return res.status(400).json({ message: 'Invalid or expired OTP' });
-        }
+//         if (user.otp !== otp || Date.now() > user.otpExpires) {
+//             return res.status(400).json({ message: 'Invalid or expired OTP' });
+//         }
 
-        // Clear OTP and expiration fields
-        user.otp = undefined;
-        user.otpExpires = undefined;
+//         // Clear OTP and expiration fields
+//         user.otp = undefined;
+//         user.otpExpires = undefined;
 
-        // Update lastLogin field
-        user.lastLogin = Date.now();
-        await user.save();
+//         // Update lastLogin field
+//         user.lastLogin = Date.now();
+//         await user.save();
 
-        // Generate JWT for authenticated user
-        const token = jwt.sign(
-            { userId: user._id, username: user.username },
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
+//         // Generate JWT for authenticated user
+//         const token = jwt.sign(
+//             { userId: user._id, username: user.username },
+//             process.env.JWT_SECRET,
+//             { expiresIn: '1h' }
+//         );
 
-        res.status(200).json({ message: 'Login successful', token });
-    } catch (error) {
-        console.error('Error during OTP verification:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-};
+//         res.status(200).json({ message: 'Login successful', token });
+//     } catch (error) {
+//         console.error('Error during OTP verification:', error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// };
 
-const forgotPassword = async (req, res) => {
-    console.log('Forgot password route invoked');
-    const { email } = req.body;
+// const forgotPassword = async (req, res) => {
+//     console.log('Forgot password route invoked');
+//     const { email } = req.body;
   
-    try {
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
+//     try {
+//       const user = await User.findOne({ email });
+//       if (!user) {
+//         return res.status(404).json({ message: 'User not found' });
+//       }
   
-      // Create a reset token
-      const resetToken = jwt.sign(
-        { userId: user._id },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
+//       // Create a reset token
+//       const resetToken = jwt.sign(
+//         { userId: user._id },
+//         process.env.JWT_SECRET,
+//         { expiresIn: '1h' }
+//       );
   
-      // Store the reset token in the database
-      user.resetPasswordToken = resetToken;
-      await user.save();
+//       // Store the reset token in the database
+//       user.resetPasswordToken = resetToken;
+//       await user.save();
   
-      // Log the token and user details
-      console.log(`Reset token for ${user.email}: ${resetToken}`);
+//       // Log the token and user details
+//       console.log(`Reset token for ${user.email}: ${resetToken}`);
   
-      // Create the reset URL
-      const resetUrl = `http://localhost:3000/api/reset-password/${resetToken}`;
+//       // Create the reset URL
+//       const resetUrl = `http://localhost:3000/api/reset-password/${resetToken}`;
   
-      // Send the reset URL to the user's email
-      await sendEmail(
-        user.email,
-        'Password Reset Request',
-        `Click on the link to reset your password: <a href="${resetUrl}">Reset Password</a>`
-      );
+//       // Send the reset URL to the user's email
+//       await sendEmail(
+//         user.email,
+//         'Password Reset Request',
+//         `Click on the link to reset your password: <a href="${resetUrl}">Reset Password</a>`
+//       );
   
-      res.status(200).json({ message: 'Password reset email sent' });
-    } catch (error) {
-      console.error('Error in forgot password:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
+//       res.status(200).json({ message: 'Password reset email sent' });
+//     } catch (error) {
+//       console.error('Error in forgot password:', error);
+//       res.status(500).json({ message: 'Server error' });
+//     }
+//   };
   
   
-  const resetPassword = async (req, res) => {
-    console.log('Reset password route invoked');
-    const { token } = req.params;
-    const { password } = req.body;
+//   const resetPassword = async (req, res) => {
+//     console.log('Reset password route invoked');
+//     const { token } = req.params;
+//     const { password } = req.body;
   
-    console.log(`Received token: ${token}`);
-    console.log(`New password: ${password}`);
+//     console.log(`Received token: ${token}`);
+//     console.log(`New password: ${password}`);
   
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+//     try {
+//       const decoded = jwt.verify(token, process.env.JWT_SECRET);
   
-      const user = await User.findById(decoded.userId);
+//       const user = await User.findById(decoded.userId);
   
-      if (!user) {
-        return res.status(400).json({ message: 'Invalid or expired token' });
-      }
+//       if (!user) {
+//         return res.status(400).json({ message: 'Invalid or expired token' });
+//       }
   
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
+//       const hashedPassword = await bcrypt.hash(password, 10);
+//       user.password = hashedPassword;
   
-      // Clear the reset token fields
-      user.resetPasswordToken = undefined;
+//       // Clear the reset token fields
+//       user.resetPasswordToken = undefined;
   
-      await user.save();
+//       await user.save();
   
-      res.status(200).json({ message: 'Password reset successful' });
-    } catch (error) {
-      console.error('Error in reset password:', error);
+//       res.status(200).json({ message: 'Password reset successful' });
+//     } catch (error) {
+//       console.error('Error in reset password:', error);
   
-      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-        return res.status(400).json({ message: 'Invalid or expired token' });
-      }
+//       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+//         return res.status(400).json({ message: 'Invalid or expired token' });
+//       }
   
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
+//       res.status(500).json({ message: 'Server error' });
+//     }
+//   };
   
-// Assuming you store tokens in some blacklist or session store, otherwise, this function will simply send a response.
-const logout = async (req, res) => {
-  try {
-    // Clear the token by setting it to an empty value or instructing the client to remove it from local storage/cookies.
+// // Assuming you store tokens in some blacklist or session store, otherwise, this function will simply send a response.
+// const logout = async (req, res) => {
+//   try {
+//     // Clear the token by setting it to an empty value or instructing the client to remove it from local storage/cookies.
     
-    // Optionally, if using sessions, you can also destroy the session on the server side:
-    if (req.session) {
-      req.session.destroy(err => {
-        if (err) {
-          console.error('Error destroying session during logout:', err);
-          return res.status(500).json({ message: 'Error during session logout' });
-        }
-      });
-    }
+//     // Optionally, if using sessions, you can also destroy the session on the server side:
+//     if (req.session) {
+//       req.session.destroy(err => {
+//         if (err) {
+//           console.error('Error destroying session during logout:', err);
+//           return res.status(500).json({ message: 'Error during session logout' });
+//         }
+//       });
+//     }
 
-    // You can also clear the JWT token cookie if it exists
-    res.clearCookie('token'); // Clear the 'token' cookie (if used)
+//     // You can also clear the JWT token cookie if it exists
+//     res.clearCookie('token'); // Clear the 'token' cookie (if used)
 
-    // Send a logout success response
-    res.status(200).json({ message: 'Logout successful' });
-  } catch (error) {
-    console.error('Error during logout:', error);
-    res.status(500).json({ message: 'Server error during logout' });
-  }
-};
+//     // Send a logout success response
+//     res.status(200).json({ message: 'Logout successful' });
+//   } catch (error) {
+//     console.error('Error during logout:', error);
+//     res.status(500).json({ message: 'Server error during logout' });
+//   }
+// };
 
-module.exports = {
-  logout,
-};
+// module.exports = {
+//   logout,
+// };
 
 
 const verifyEmail = async (req, res) => {
