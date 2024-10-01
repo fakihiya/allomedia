@@ -8,7 +8,7 @@ router.post('/users/login', login);
 router.get('/users/verify/:token', verifyEmail);
 router.post('/users/verify-otp', verifyOTP);
 
-// router.post('/forgot-password', forgotPassword);
+router.post('/forgot-password', forgotPassword);
 
 router.post('/reset-password/:token', resetPassword);
 router.post('/users/logout', logout);
