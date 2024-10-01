@@ -173,42 +173,42 @@ const login = async (req, res) => {
 //   };
   
   
-//   const resetPassword = async (req, res) => {
-//     console.log('Reset password route invoked');
-//     const { token } = req.params;
-//     const { password } = req.body;
+  const resetPassword = async (req, res) => {
+    console.log('Reset password route invoked');
+    const { token } = req.params;
+    const { password } = req.body;
   
-//     console.log(`Received token: ${token}`);
-//     console.log(`New password: ${password}`);
+    console.log(`Received token: ${token}`);
+    console.log(`New password: ${password}`);
   
-//     try {
-//       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
   
-//       const user = await User.findById(decoded.userId);
+      const user = await User.findById(decoded.userId);
   
-//       if (!user) {
-//         return res.status(400).json({ message: 'Invalid or expired token' });
-//       }
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired token' });
+      }
   
-//       const hashedPassword = await bcrypt.hash(password, 10);
-//       user.password = hashedPassword;
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
   
-//       // Clear the reset token fields
-//       user.resetPasswordToken = undefined;
+      // Clear the reset token fields
+      user.resetPasswordToken = undefined;
   
-//       await user.save();
+      await user.save();
   
-//       res.status(200).json({ message: 'Password reset successful' });
-//     } catch (error) {
-//       console.error('Error in reset password:', error);
+      res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+      console.error('Error in reset password:', error);
   
-//       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-//         return res.status(400).json({ message: 'Invalid or expired token' });
-//       }
+      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+        return res.status(400).json({ message: 'Invalid or expired token' });
+      }
   
-//       res.status(500).json({ message: 'Server error' });
-//     }
-//   };
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
   
 // // Assuming you store tokens in some blacklist or session store, otherwise, this function will simply send a response.
 // const logout = async (req, res) => {
