@@ -135,7 +135,7 @@ describe('User Controller Methods', () => {
 
     test('should return 200 on successful password reset', async () => {
       req.params = { token: 'validtoken' };
-      req.body = { password: 'newpassword123' };
+      req.body = { password: 'newpassword123', confirmpassword: 'newpassword123' };
       jwt.verify.mockReturnValue({ userId: 'userid123' });
       User.findById.mockResolvedValue({
         save: jest.fn(),
