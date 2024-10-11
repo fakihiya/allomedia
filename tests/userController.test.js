@@ -176,24 +176,24 @@ describe('User Controller Methods', () => {
     });
   });
 
-  describe('logout', () => {
-    test('should return 200 on successful logout', async () => {
-      await logout(req, res);
+  // describe('logout', () => {
+  //   test('should return 200 on successful logout', async () => {
+  //     await logout(req, res);
 
-      expect(res.clearCookie).toHaveBeenCalledWith('token');
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Logout successful' });
-    });
+  //     expect(res.clearCookie).toHaveBeenCalledWith('token');
+  //     expect(res.status).toHaveBeenCalledWith(200);
+  //     expect(res.json).toHaveBeenCalledWith({ message: 'Logout successful' });
+  //   });
 
-    test('should return 500 if session destruction fails', async () => {
-      req.session.destroy = jest.fn((callback) => callback(new Error('Session destruction failed')));
+  //   test('should return 500 if session destruction fails', async () => {
+  //     req.session.destroy = jest.fn((callback) => callback(new Error('Session destruction failed')));
 
-      await logout(req, res);
+  //     await logout(req, res);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({ message: 'Error during session logout' });
-    });
-  });
+  //     expect(res.status).toHaveBeenCalledWith(500);
+  //     expect(res.json).toHaveBeenCalledWith({ message: 'Error during session logout' });
+  //   });
+  // });
 });
 
 

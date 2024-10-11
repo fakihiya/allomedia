@@ -128,107 +128,30 @@ const verifyOTP = async (req, res) => {
     }
 };
 
-const forgotPassword = async (req, res) => {
-    console.log('Forgot password route invoked');
-    const { email } = req.body;
-  
-    try {
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-  
-      // Create a reset token
-      const resetToken = jwt.sign(
-        { userId: user._id },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-  
-      // Store the reset token in the database
-      user.resetPasswordToken = resetToken;
-      await user.save();
-  
-      // Log the token and user details
-      console.log(`Reset token for ${user.email}: ${resetToken}`);
-  
-      // Create the reset URL
-      const resetUrl = `http://localhost:3000/api/reset-password/${resetToken}`;
-  
-      // Send the reset URL to the user's email
-      await sendEmail(
-        user.email,
-        'Password Reset Request',
-        `Click on the link to reset your password: <a href="${resetUrl}">Reset Password</a>`
-      );
-  
-      res.status(200).json({ message: 'Password reset email sent' });
-    } catch (error) {
-      console.error('Error in forgot password:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-  
-  
-  const resetPassword = async (req, res) => {
-    console.log('Reset password route invoked');
-    const { token } = req.params;
-    const { password } = req.body;
-  
-    console.log(`Received token: ${token}`);
-    console.log(`New password: ${password}`);
-  
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  
-      const user = await User.findById(decoded.userId);
-  
-      if (!user) {
-        return res.status(400).json({ message: 'Invalid or expired token' });
-      }
-  
-      const hashedPassword = await bcrypt.hash(password, 10);
-      user.password = hashedPassword;
-  
-      // Clear the reset token fields
-      user.resetPasswordToken = undefined;
-  
-      await user.save();
-  
-      res.status(200).json({ message: 'Password reset successful' });
-    } catch (error) {
-      console.error('Error in reset password:', error);
-  
-      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-        return res.status(400).json({ message: 'Invalid or expired token' });
-      }
-  
-      res.status(500).json({ message: 'Server error' });
-    }
-  };
-  
-const logout = async (req, res) => {
-  try {
+
+// const logout = async (req, res) => {
+//   try {
     
-    if (req.session) {
-      req.session.destroy(err => {
-        if (err) {
-          console.error('Error destroying session during logout:', err);
-          return res.status(500).json({ message: 'Error during session logout' });
-        }
-      });
-    }
+//     if (req.session) {
+//       req.session.destroy(err => {
+//         if (err) {
+//           console.error('Error destroying session during logout:', err);
+//           return res.status(500).json({ message: 'Error during session logout' });
+//         }
+//       });
+//     }
 
 
-    res.clearCookie('token'); 
+//     res.clearCookie('token'); 
 
     
-    res.status(200).json({ message: 'Logout successful' });
-  } catch (error) {
-    console.error('Error during logout:', error);
-    res.status(500).json({ message: 'Server error during logout' });
-  }
-};
+//     res.status(200).json({ message: 'Logout successful' });
+//   } catch (error) {
+//     console.error('Error during logout:', error);
+//     res.status(500).json({ message: 'Server error during logout' });
+//   }
+// };
+
 
 
 
@@ -258,5 +181,90 @@ const verifyEmail = async (req, res) => {
         res.status(400).json({ message: 'Invalid or expired token' });
     }
 };
-module.exports = { register, login, verifyEmail,verifyOTP ,resetPassword, forgotPassword,logout};
 
+const forgotPassword = async (req, res) => {
+  console.log('Forgot password route invoked');
+  const { email } = req.body;
+
+  try {
+    // Check if the user 1
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Create a reset token using JWT
+    const resetToken = jwt.sign(
+      { userId: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' } // Token expires in 1 hour
+    );
+
+    // Store the reset token in the user document
+    user.resetPasswordToken = resetToken;
+    await user.save();
+
+    // Log the token and user details (for debugging purposes)
+    console.log(`Reset token for ${user.email}: ${resetToken}`);
+
+    // Construct the frontend reset URL
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`; // Change this to your frontend URL
+
+    // Send the reset URL to the user's email
+    await sendEmail(
+      user.email,
+      'Password Reset Request',
+      `Click on the link to reset your password: <a href="${resetUrl}">Reset Password</a>`
+    );
+
+    res.status(200).json({ message: 'Password reset email sent' });
+  } catch (error) {
+    console.error('Error in forgot password:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+  
+  
+  const resetPassword = async (req, res) => {
+    // console.log('Reset password route invoked');
+    const { token } = req.params;
+    const { password,confirmpassword } = req.body;
+  
+    // console.log(`password`, password);
+    // console.log(`confirmpassword` ,confirmpassword);
+  
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log("Decoded token:", decoded); // Add this log to see the decoded token
+
+      const user = await User.findById(decoded.userId);
+  
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired token' });
+      }
+
+      if(password !== confirmpassword){
+        return res.status(401).json({message: 'password not match'});
+      }
+  
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+  
+      // Clear the reset token fields
+      user.resetPasswordToken = undefined;
+  
+      await user.save();
+  
+      res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+      console.error('Error in reset password:', error);
+  
+      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+        return res.status(400).json({ message: 'Invalid or expired token' });
+      }
+  
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+
+  module.exports = { register, login, verifyEmail,verifyOTP ,resetPassword, forgotPassword};
