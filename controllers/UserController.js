@@ -2,6 +2,7 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { sendverificationemail , sendEmail} = require('../services/emailService');
+const { date } = require('joi');
 const jwtsecret = process.env.JWT_SECRET;
 
 
@@ -32,10 +33,10 @@ const register = async (req, res) => {
         { expiresIn: '1h' }
       );
   
-      // Create a verification link with the token
-      const verificationLink = `http://localhost:3000/api/users/verify/${token}`;
+      // const verificationLink = `http://localhost:3000/api/users/verify/${token}`;
+      const verificationLink = `http://localhost:5173/verify-email/${token}`;
+
   
-      // Send a verification email to the user
       await sendverificationemail(email, verificationLink);
   
     
@@ -58,75 +59,98 @@ const register = async (req, res) => {
 
 
 const login = async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const user = await User.findOne({ email });
+  const { email, password } = req.body;
+  try {
+      const user = await User.findOne({ email });
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
 
-        if (!user.isVerified) {
-            return res.status(400).json({ message: 'Please verify your email' });
-        }
+      if (!user.isVerified) {
+          return res.status(400).json({ message: 'Please verify your email' });
+      }
 
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) {
-            return res.status(400).json({ message: 'Invalid password' });
-        }
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
+          return res.status(400).json({ message: 'Invalid password' });
+      }
 
+      const currentDate = new Date();
+      const lastMonth = new Date(currentDate.setDate(currentDate.getDate() - 30));
+
+     
+      if (!user.lastLogin || user.lastLogin < lastMonth) {
         const otp = generateOTP();
         user.otp = otp;
-        user.otpExpires = Date.now() + 10 * 60 * 1000; 
+        user.otpExpires = Date.now() + 10 * 60 * 1000;
+        user.lastLogin = new Date();
         await user.save();
-
+      
         await sendEmail(
-            user.email,
-            'Your Login OTP',
-            `<h3>Your OTP for Login</h3><p>Your OTP is: <strong>${otp}</strong>. It will expire in 10 minutes.</p>`
+          user.email,
+          'Your Login OTP',
+          `<h3>Your OTP for Login</h3><p>Your OTP is: <strong>${otp}</strong>. It will expire in 10 minutes.</p>`
         );
+      
+        return res.status(200).json({ message: 'OTP sent to your email' });
+      }
+      
+      
+      user.lastLogin = new Date();
+      await user.save();
+      
+      const token = jwt.sign(
+          { userId: user._id, username: user.username },
+          process.env.JWT_SECRET,
+          { expiresIn: '1h' }
+      );
+    
 
-        res.status(200).json({ message: 'OTP sent to your email' });
-    } catch (error) {
-        console.error('Error during login:', error);
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
+      res.status(200).json({ message: 'Login successful', token });
+
+  } catch (error) {
+      console.error('Error during login:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+  }
 };
+
 
 const verifyOTP = async (req, res) => {
-    const { email, otp } = req.body;
-    try {
-        const user = await User.findOne({ email });
+  const { email, otp } = req.body;
+  try {
+    const user = await User.findOne({ email });
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        if (user.otp !== otp || Date.now() > user.otpExpires) {
-            return res.status(400).json({ message: 'Invalid or expired OTP' });
-        }
-
-        // Clear OTP and expiration fields
-        user.otp = undefined;
-        user.otpExpires = undefined;
-
-        // Update lastLogin field
-        user.lastLogin = Date.now();
-        await user.save();
-
-        // Generate JWT for authenticated user
-        const token = jwt.sign(
-            { userId: user._id, username: user.username },
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
-
-        res.status(200).json({ message: 'Login successful', token });
-    } catch (error) {
-        console.error('Error during OTP verification:', error);
-        res.status(500).json({ message: 'Server error' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
+
+    // Check OTP validity
+    if (user.otp !== otp || Date.now() > user.otpExpires) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // OTP verified, now update the lastLogin date
+    user.otp = undefined;  // Clear the OTP
+    user.otpExpires = undefined;
+    user.lastLogin = new Date();  // Update lastLogin after successful OTP verification
+    await user.save();
+
+    // Generate JWT for authenticated user
+    const token = jwt.sign(
+      { userId: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.status(200).json({ message: 'Login successful', token });
+  } catch (error) {
+    console.error('Error during OTP verification:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
 };
+
+
 
 
 // const logout = async (req, res) => {
@@ -187,30 +211,28 @@ const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    // Check if the user 1
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Create a reset token using JWT
     const resetToken = jwt.sign(
       { userId: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' } // Token expires in 1 hour
+      { expiresIn: '1h' } 
     );
 
-    // Store the reset token in the user document
+
     user.resetPasswordToken = resetToken;
     await user.save();
 
-    // Log the token and user details (for debugging purposes)
     console.log(`Reset token for ${user.email}: ${resetToken}`);
 
-    // Construct the frontend reset URL
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`; // Change this to your frontend URL
+  
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
 
-    // Send the reset URL to the user's email
+
     await sendEmail(
       user.email,
       'Password Reset Request',
