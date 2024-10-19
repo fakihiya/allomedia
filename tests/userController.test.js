@@ -1,12 +1,12 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/user'); 
+const User = require('../models/User'); 
 const { register,login, resetPassword, forgotPassword, logout } = require('../controllers/UserController'); 
 const { sendEmail } = require('../services/emailService');
 
 jest.mock('bcryptjs');
 jest.mock('jsonwebtoken');
-jest.mock('../models/user');
+jest.mock('../models/User');
 jest.mock('../services/emailService');
 
 describe('User Controller Methods', () => {
