@@ -1,5 +1,5 @@
 const nodemailer = require("nodemailer");
-const User = require("../models/user");
+const User = require("../models/User");
 const { from } = require("form-data");
 
 const transport = nodemailer.createTransport({
