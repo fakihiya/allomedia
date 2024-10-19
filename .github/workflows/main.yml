@@ -1,0 +1,33 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: run tests
+    steps:
+      - name: My first step - check out repository
+        uses: actions/checkout@v4
+      - name: Setup Nodejs envirement
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx jest
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    name: Deploy to EC2
+    steps:
+    - name: Connect to EC2 with ssh
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          cd allomedia
+          git pull origin main
